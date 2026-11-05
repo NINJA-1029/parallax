@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beyond — Parallax Experience</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #080b18;
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: #a78bfa;
+            color: #080b18;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #080b18;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #777;
+            border-radius: 10px;
+        }
+
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #a78bfa, #38bdf8, #fbbf24);
+            transform: scaleX(0);
+            transform-origin: left;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 28px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), transparent);
+        }
+
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 23px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: #a78bfa;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            padding: 12px 22px;
+            border-radius: 30px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover {
+            background: white;
+            color: #111;
+        }
+
+        .scene {
+            position: relative;
+            min-height: 100vh;
+            min-height: 100svh;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            isolation: isolate;
+        }
+
+        .layer {
+            position: absolute;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .content {
+            position: relative;
+            z-index: 20;
+            width: 100%;
+            padding: 0 12%;
+            pointer-events: none;
+        }
+
+        .content-inner {
+            max-width: 750px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 35px;
+            height: 1px;
+            background: currentColor;
+        }
+
+        h1,
+        h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -5px;
+            line-height: 0.95;
+        }
+
+        h1 {
+            font-size: clamp(70px, 11vw, 165px);
+        }
+
+        h2 {
+            font-size: clamp(65px, 10vw, 140px);
+        }
+
+        .outline {
+            color: transparent;
+            -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.75);
+        }
+
+        .description {
+            margin-top: 30px;
+            max-width: 440px;
+            font-size: 16px;
+            line-height: 1.9;
+            color: rgba(255, 255, 255, 0.75);
+        }
+
+        .chapter {
+            position: absolute;
+            bottom: 45px;
+            left: 7%;
+            z-index: 30;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 40px;
+            right: 7%;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 11px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scroll-line::after {
+            content: "";
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            animation: scrollDown 2s infinite;
+        }
+
+        @keyframes scrollDown {
+            to {
+                top: 100%;
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease, transform 1s cubic-bezier(.2, .8, .2, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stars {
+            position: absolute;
+            inset: -15%;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            from {
+                opacity: 0.2;
+                transform: scale(0.5);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1.5);
+            }
+        }
+
+        .mountains {
+            background: linear-gradient(180deg,
+                    #080b23 0%,
+                    #17214b 42%,
+                    #563b76 75%,
+                    #c27c91 100%);
+        }
+
+        .moon-glow {
+            width: 500px;
+            height: 500px;
+            top: 5%;
+            right: 8%;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                    rgba(255, 190, 210, 0.35),
+                    rgba(210, 140, 220, 0.1) 45%,
+                    transparent 70%);
+            filter: blur(10px);
+        }
+
+        .moon {
+            width: clamp(130px, 19vw, 280px);
+            aspect-ratio: 1;
+            top: 16%;
+            right: 18%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff9e5, #f6b7c8);
+            box-shadow: 0 0 90px rgba(255, 190, 220, 0.35);
+        }
+
+        .ridge {
+            bottom: -8%;
+            left: -10%;
+            width: 120%;
+            height: 60%;
+        }
+
+        .ridge-back {
+            background: linear-gradient(#5c527f, #343d70);
+            clip-path: polygon(0 100%, 0 55%, 10% 62%, 20% 18%,
+                    32% 65%, 43% 32%, 54% 66%,
+                    67% 12%, 78% 60%, 90% 30%,
+                    100% 55%, 100% 100%);
+        }
+
+        .ridge-middle {
+            height: 48%;
+            background: linear-gradient(#303966, #1b2748);
+            clip-path: polygon(0 100%, 0 48%, 13% 23%, 25% 65%,
+                    37% 30%, 48% 69%, 61% 19%,
+                    75% 68%, 87% 30%, 100% 55%,
+                    100% 100%);
+        }
+
+        .ridge-front {
+            height: 33%;
+            background: linear-gradient(#152342, #080d20);
+            clip-path: polygon(0 100%, 0 30%, 12% 50%, 26% 18%,
+                    42% 62%, 54% 32%, 68% 57%,
+                    82% 20%, 100% 48%, 100% 100%);
+        }
+
+        .mountains .eyebrow {
+            color: #ffccdc;
+        }
+
+        .mountains .content {
+            margin-top: -40px;
+        }
+
+        .ocean {
+            background: linear-gradient(180deg,
+                    #092b53 0%,
+                    #075782 32%,
+                    #064866 65%,
+                    #021b37 100%);
+        }
+
+        .ocean::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%,
+                    rgba(91, 215, 255, 0.35),
+                    transparent 60%);
+        }
+
+        .light-beam {
+            top: -30%;
+            height: 150%;
+            width: 25%;
+            background: linear-gradient(to bottom,
+                    rgba(145, 238, 255, 0.28),
+                    transparent);
+            filter: blur(35px);
+            transform-origin: top center;
+        }
+
+        .beam-one {
+            left: 12%;
+            rotate: -22deg;
+        }
+
+        .beam-two {
+            right: 10%;
+            rotate: 24deg;
+        }
+
+        .ocean-ring {
+            width: 460px;
+            height: 460px;
+            border: 1px solid rgba(125, 235, 255, 0.25);
+            border-radius: 50%;
+            right: 8%;
+            top: 17%;
+            box-shadow:
+                0 0 0 60px rgba(125, 235, 255, 0.025),
+                0 0 0 120px rgba(125, 235, 255, 0.02),
+                inset 0 0 70px rgba(125, 235, 255, 0.05);
+        }
+
+        .ocean-orb {
+            width: 180px;
+            height: 180px;
+            right: 18%;
+            top: 35%;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%,
+                    #a5f3fc,
+                    #0891b2 50%,
+                    #164e63);
+            box-shadow: 0 0 100px rgba(34, 211, 238, 0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                margin-top: 0;
+            }
+
+            50% {
+                margin-top: -25px;
+            }
+        }
+
+        .bubble {
+            position: absolute;
+            border: 1px solid rgba(180, 240, 255, 0.5);
+            border-radius: 50%;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+            animation: rise linear infinite;
+        }
+
+        @keyframes rise {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 0.7;
+            }
+
+            to {
+                transform: translateY(-110vh);
+                opacity: 0;
+            }
+        }
+
+        .seabed {
+            left: -10%;
+            bottom: -8%;
+            width: 120%;
+            height: 35%;
+            background: linear-gradient(#073451, #03172d);
+            clip-path: polygon(0 100%, 0 55%, 15% 40%,
+                    31% 65%, 48% 35%,
+                    64% 58%, 81% 30%,
+                    100% 55%, 100% 100%);
+        }
+
+        .ocean .eyebrow {
+            color: #67e8f9;
+        }
+
+        .desert {
+            background: linear-gradient(180deg,
+                    #5d335e 0%,
+                    #a85469 38%,
+                    #ed9874 75%,
+                    #ffcc88 100%);
+        }
+
+        .desert::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 65% 60%,
+                    rgba(255, 222, 145, 0.35),
+                    transparent 55%);
+        }
+
+        .sun-glow {
+            width: 650px;
+            height: 650px;
+            top: 5%;
+            right: 6%;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                    rgba(255, 233, 164, 0.55),
+                    rgba(255, 161, 116, 0.15) 50%,
+                    transparent 70%);
+            filter: blur(25px);
+        }
+
+        .sun {
+            width: clamp(220px, 30vw, 430px);
+            aspect-ratio: 1;
+            right: 13%;
+            top: 17%;
+            border-radius: 50%;
+            background: linear-gradient(180deg,
+                    #fff4c0,
+                    #ffcc84);
+            box-shadow: 0 0 100px rgba(255, 221, 146, 0.4);
+        }
+
+        .dune {
+            position: absolute;
+            left: -15%;
+            width: 130%;
+            bottom: -12%;
+            border-radius: 50% 50% 0 0 / 45% 65% 0 0;
+        }
+
+        .dune-back {
+            height: 48%;
+            background: linear-gradient(#d78576, #b15b68);
+        }
+
+        .dune-middle {
+            height: 33%;
+            left: -30%;
+            background: linear-gradient(#a94f62, #743b58);
+            border-radius: 65% 35% 0 0 / 55% 60% 0 0;
+        }
+
+        .dune-front {
+            height: 22%;
+            background: linear-gradient(#713754, #492c48);
+            border-radius: 30% 70% 0 0 / 80% 50% 0 0;
+        }
+
+        .desert .eyebrow {
+            color: #ffe2b4;
+        }
+
+        .space {
+            background: radial-gradient(ellipse at 50% 60%,
+                    #33225f 0%,
+                    #171333 45%,
+                    #080b18 90%);
+            text-align: center;
+            justify-content: center;
+        }
+
+        .space .content-inner {
+            margin: auto;
+        }
+
+        .space .description {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .space .eyebrow {
+            color: #c4b5fd;
+        }
+
+        .space .eyebrow::after {
+            content: "";
+            width: 35px;
+            height: 1px;
+            background: currentColor;
+        }
+
+        .space .eyebrow::before {
+            display: none;
+        }
+
+        .cosmic-glow {
+            width: min(85vw, 800px);
+            aspect-ratio: 1;
+            top: 50%;
+            left: 50%;
+            margin-top: -400px;
+            margin-left: -400px;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                    rgba(139, 92, 246, 0.25),
+                    rgba(76, 29, 149, 0.12) 40%,
+                    transparent 70%);
+            filter: blur(25px);
+        }
+
+        .orbit {
+            width: 650px;
+            height: 650px;
+            top: 50%;
+            left: 50%;
+            margin-left: -325px;
+            margin-top: -325px;
+            border: 1px solid rgba(196, 181, 253, 0.18);
+            border-radius: 50%;
+        }
+
+        .orbit-two {
+            width: 900px;
+            height: 900px;
+            margin-left: -450px;
+            margin-top: -450px;
+            border-color: rgba(196, 181, 253, 0.1);
+        }
+
+        .orbit-three {
+            width: 1150px;
+            height: 1150px;
+            margin-left: -575px;
+            margin-top: -575px;
+            border-color: rgba(196, 181, 253, 0.06);
+        }
+
+        .planet-small {
+            width: 38px;
+            height: 38px;
+            top: 20%;
+            right: 22%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0abfc, #7c3aed);
+            box-shadow: 0 0 40px rgba(192, 132, 252, 0.5);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 17px 30px;
+            margin-top: 35px;
+            border-radius: 50px;
+            background: white;
+            color: #151126;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            transition: 0.3s;
+            pointer-events: auto;
+        }
+
+        .btn:hover {
+            background: #c4b5fd;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(167, 139, 250, 0.3);
+        }
+
+        .dots {
+            position: fixed;
+            right: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border: 1px solid white;
+            border-radius: 50%;
+            background: transparent;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+
+        .dot.active {
+            background: white;
+            opacity: 1;
+            transform: scale(1.5);
+        }
+
+        footer {
+            background: #080b18;
+            padding: 25px 7%;
+            display: flex;
+            justify-content: space-between;
+            color: #77768c;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 22px 6%;
+            }
+
+            .content {
+                padding: 0 8%;
+            }
+
+            h1,
+            h2 {
+                letter-spacing: -3px;
+            }
+
+            .description {
+                font-size: 14px;
+                max-width: 330px;
+            }
+
+            .moon {
+                right: 5%;
+                top: 16%;
+            }
+
+            .sun {
+                right: -5%;
+                top: 20%;
+            }
+
+            .ocean-ring {
+                right: -50%;
+            }
+
+            .ocean-orb {
+                right: 5%;
+                top: 22%;
+                width: 110px;
+                height: 110px;
+            }
+
+            .dots {
+                display: none;
+            }
+
+            .scroll-hint {
+                right: 6%;
+            }
+
+            .cosmic-glow {
+                margin: 0;
+                transform: translate(-50%, -50%);
+            }
+
+            footer {
+                gap: 20px;
+                font-size: 9px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+            }
+
+            .layer {
+                will-change: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="progress">
+        <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <nav class="navbar">
+        <a href="#home" class="logo">BEYOND<span>.</span></a>
+        <a href="#explore" class="nav-link">Explore ↓</a>
+    </nav>
+
+    <div class="dots">
+        <a href="#home" class="dot active" aria-label="Mountains"></a>
+        <a href="#explore" class="dot" aria-label="Ocean"></a>
+        <a href="#desert" class="dot" aria-label="Desert"></a>
+        <a href="#space" class="dot" aria-label="Space"></a>
+    </div>
+
+    <main>
+
+        <section class="scene mountains" id="home">
+
+            <div class="stars layer" data-speed="0.08"></div>
+
+            <div class="moon-glow layer" data-speed="0.15"></div>
+            <div class="moon layer" data-speed="0.25"></div>
+
+            <div class="ridge ridge-back layer" data-speed="0.10"></div>
+            <div class="ridge ridge-middle layer" data-speed="0.20"></div>
+            <div class="ridge ridge-front layer" data-speed="0.32"></div>
+
+            <div class="content layer" data-speed="0.05">
+                <div class="content-inner reveal">
+                    <div class="eyebrow">01 / The beginning</div>
+                    <h1>
+                        GO<br>
+                        <span class="outline">FURTHER.</span>
+                    </h1>
+                    <p class="description">
+                        Some journeys are measured in miles.
+                        Others are measured in moments.
+                        Scroll down and discover a world beyond the ordinary.
+                    </p>
+                </div>
+            </div>
+
+            <div class="chapter">CHAPTER 01 — THE HEIGHTS</div>
+
+            <div class="scroll-hint">
+                SCROLL TO EXPLORE
+                <span class="scroll-line"></span>
+            </div>
+
+        </section>
+
+        <section class="scene ocean" id="explore">
+
+            <div class="light-beam beam-one layer" data-speed="0.10"></div>
+            <div class="light-beam beam-two layer" data-speed="0.15"></div>
+
+            <div class="ocean-ring layer" data-speed="0.20"></div>
+            <div class="ocean-orb layer" data-speed="0.30"></div>
+
+            <div id="bubbles" class="stars layer" data-speed="0.12"></div>
+
+            <div class="seabed layer" data-speed="0.25"></div>
+
+            <div class="content layer" data-speed="0.05">
+                <div class="content-inner reveal">
+                    <div class="eyebrow">02 / Beneath the surface</div>
+                    <h2>
+                        DIVE<br>
+                        <span class="outline">DEEPER.</span>
+                    </h2>
+                    <p class="description">
+                        Beneath every surface lies another universe.
+                        Let curiosity pull you into the unknown,
+                        where every layer reveals something extraordinary.
+                    </p>
+                </div>
+            </div>
+
+            <div class="chapter">CHAPTER 02 — THE DEPTHS</div>
+
+        </section>
+
+        <section class="scene desert" id="desert">
+
+            <div class="sun-glow layer" data-speed="0.10"></div>
+            <div class="sun layer" data-speed="0.22"></div>
+
+            <div class="dune dune-back layer" data-speed="0.08"></div>
+            <div class="dune dune-middle layer" data-speed="0.18"></div>
+            <div class="dune dune-front layer" data-speed="0.30"></div>
+
+            <div class="content layer" data-speed="0.05">
+                <div class="content-inner reveal">
+                    <div class="eyebrow">03 / Into the horizon</div>
+                    <h2>
+                        CHASE<br>
+                        <span class="outline">THE LIGHT.</span>
+                    </h2>
+                    <p class="description">
+                        The horizon is never the end.
+                        It is an invitation to keep moving,
+                        to discover new perspectives and endless possibilities.
+                    </p>
+                </div>
+            </div>
+
+            <div class="chapter">CHAPTER 03 — THE HORIZON</div>
+
+        </section>
+
+        <section class="scene space" id="space">
+
+            <div class="stars layer" data-speed="0.06"></div>
+
+            <div class="cosmic-glow layer" data-speed="0.05"></div>
+
+            <div class="orbit layer" data-speed="0.08"></div>
+            <div class="orbit orbit-two layer" data-speed="0.13"></div>
+            <div class="orbit orbit-three layer" data-speed="0.18"></div>
+
+            <div class="planet-small layer" data-speed="0.25"></div>
+
+            <div class="content layer" data-speed="0.03">
+                <div class="content-inner reveal">
+                    <div class="eyebrow">04 / The infinite</div>
+                    <h2>
+                        STAY<br>
+                        <span class="outline">CURIOUS.</span>
+                    </h2>
+                    <p class="description">
+                        The best adventures never really end.
+                        There is always another story to discover,
+                        another horizon waiting beyond the stars.
+                    </p>
+                    <a href="#home" class="btn">
+                        EXPERIENCE AGAIN
+                        <span>↗</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="chapter">CHAPTER 04 — THE INFINITE</div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <span>BEYOND © 2026</span>
+        <span>DESIGNED TO MAKE YOU FEEL SOMETHING</span>
+    </footer>
+
+    <script>
+        const sections = document.querySelectorAll('.scene');
+        const layers = document.querySelectorAll('[data-speed]');
+        const progress = document.getElementById('progress');
+        const dots = document.querySelectorAll('.dot');
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        document.querySelectorAll('.stars:not(#bubbles)').forEach(container => {
+            for (let i = 0; i < 90; i++) {
+                const star = document.createElement('span');
+                star.className = 'star';
+                const size = Math.random() * 2.5 + 0.5;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.animationDelay = Math.random() * 5 + 's';
+                star.style.animationDuration = 2 + Math.random() * 4 + 's';
+                container.appendChild(star);
+            }
+        });
+
+        const bubbleContainer = document.getElementById('bubbles');
+
+        for (let i = 0; i < 35; i++) {
+            const bubble = document.createElement('span');
+            bubble.className = 'bubble';
+            const size = Math.random() * 16 + 4;
+            bubble.style.width = size + 'px';
+            bubble.style.height = size + 'px';
+            bubble.style.left = Math.random() * 100 + '%';
+            bubble.style.top = 50 + Math.random() * 80 + '%';
+            bubble.style.animationDuration = 5 + Math.random() * 10 + 's';
+            bubble.style.animationDelay = -Math.random() * 15 + 's';
+            bubbleContainer.appendChild(bubble);
+        }
+
+        let ticking = false;
+
+        function updateParallax() {
+            const viewportHeight = window.innerHeight;
+            const scrollTop = window.scrollY;
+            const maxScroll = document.documentElement.scrollHeight - viewportHeight;
+
+            const scrollProgress = maxScroll > 0 ? scrollTop / maxScroll : 0;
+            progress.style.transform = `scaleX(${scrollProgress})`;
+
+            if (!reducedMotion) {
+                sections.forEach(section => {
+                    const rect = section.getBoundingClientRect();
+
+                    if (rect.bottom < -100 || rect.top > viewportHeight + 100) {
+                        return;
+                    }
+
+                    const sectionCenter = rect.top + rect.height / 2;
+                    const distance = viewportHeight / 2 - sectionCenter;
+
+                    section.querySelectorAll('[data-speed]').forEach(layer => {
+                        const speed = parseFloat(layer.dataset.speed);
+                        const movement = distance * speed;
+                        layer.style.translate = `0 ${movement.toFixed(2)}px`;
+                    });
+                });
+            }
+
+            ticking = false;
+        }
+
+        function requestUpdate() {
+            if (!ticking) {
+                requestAnimationFrame(updateParallax);
+                ticking = true;
+            }
+        }
+
+        window.addEventListener('scroll', requestUpdate, { passive: true });
+        window.addEventListener('resize', requestUpdate);
+
+        const revealObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.15
+        });
+
+        document.querySelectorAll('.reveal').forEach(element => {
+            revealObserver.observe(element);
+        });
+
+        const sectionObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const index = Array.from(sections).indexOf(entry.target);
+                    dots.forEach((dot, i) => {
+                        dot.classList.toggle('active', i === index);
+                    });
+                }
+            });
+        }, {
+            threshold: 0.5
+        });
+
+        sections.forEach(section => sectionObserver.observe(section));
+
+        updateParallax();
+    </script>
+
+</body>
+
+</html>
